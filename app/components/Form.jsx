@@ -1,6 +1,6 @@
 "use client"
 
-import { Box, Button, Dialog, DialogActions, DialogTitle, TextField, Typography } from "@mui/material"
+import { Box, Button, Dialog, DialogActions, DialogTitle, TextField, Typography, CircularProgress } from "@mui/material"
 import { useForm } from "react-hook-form"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 export default function Form() {
     const [open, setOpen] = useState(false)
     const [formData, setFormData] = useState(null)
+    const [loading, setLoading] = useState(false)
 
     const router = useRouter()
 
@@ -53,6 +54,7 @@ const onSubmit = (data) => {
 
 const handleConfirm = async () => {
 try {
+    setLoading(true)
 
     const res = await fetch("/api/questions", {
     method: "POST",
@@ -73,6 +75,7 @@ try {
                 console.error(error);
             alert('Failed to save question');
 } finally {
+    setLoading(false)
     setOpen(false)
 }
 }
@@ -174,7 +177,7 @@ const handleCancel = () => {
 
 
 
-<Dialog
+{/* <Dialog
 open={open}
 onClose={handleCancel}
 PaperProps={{
@@ -192,6 +195,57 @@ PaperProps={{
     <Button onClick={handleCancel}>Cancel</Button>
     <Button onClick={handleConfirm}>Yes</Button>
     </DialogActions>
+</Dialog> */}
+
+
+
+<Dialog
+  open={open}
+  onClose={handleCancel}
+  PaperProps={{
+    sx: {
+      width: '400px',
+      maxWidth: '90vw',
+      borderRadius: '16px', // کمی گردتر برای ظاهر مدرن‌تر (مشابه بقیه پروژه‌ات)
+      p: 1,
+    },
+  }}
+>
+  <DialogTitle sx={{ fontWeight: 'bold'}}>
+    Are you sure?
+  </DialogTitle>
+  
+  <DialogActions sx={{ pb: 2 }}>
+    {/* دکمه انصراف با رنگ ملایم */}
+    <Button 
+      onClick={handleCancel} 
+      sx={{ 
+        color: "text.secondary",
+        px: 3 
+      }}
+    >
+      Cancel
+    </Button>
+
+    {/* دکمه تایید با رنگ سبز موفقیت */}
+    <Button
+      disabled={loading}
+      onClick={handleConfirm}
+      variant="contained"
+      color="success" // رنگ سبز استاندارد MUI
+      sx={{ 
+        px: 4,
+        borderRadius: '8px',
+        textTransform: 'none', // برای اینکه حروف بزرگ اجباری نباشد
+        boxShadow: 'none',
+        '&:hover': {
+          boxShadow: '0 4px 12px rgba(46, 125, 50, 0.2)' // سایه ملایم سبز در هاور
+        }
+      }}
+    >
+      {loading ? <CircularProgress size={24} color="inherit" /> : "Yes"}
+    </Button>
+  </DialogActions>
 </Dialog>
 
         </Box>

@@ -41,23 +41,27 @@ export default function Header(props) {
 
 
     const drawer = (
-        <Box onClick={handleDrawerToggle} sx={{ textAlign: "center" }}>
-            <Box sx={{ my: 2 }}>
-                <Image src="/qaM.jpg" width={50} height={50} alt="logo" priority />
+        <Box onClick={handleDrawerToggle} sx={{ textAlign: "center"}}>
+            <Box sx={{ my: 2, display: "flex", justifyContent: "center" }}>
+                <Image src="/qaa.png" width={60} height={60} alt="logo" priority />
 
             </Box>
             <Divider />
-            <List>
+            <List sx={{mt: 1}}>
                 {navItems.map((item) => (
-                    <ListItem key={item.title} disablePadding>
-                        <ListItemButton sx={{ textAlign: "center", color: "text.primary" }}>
+                    <ListItem key={item.title} disablePadding >
+                        <ListItemButton sx={{ textAlign: "center", color: "text.primary",p: 1.5,
+                            '&:hover': {
+                                borderRight: "4px solid #2d4b4dd0"
+                             },
+                         }}>
                             <Link href={item.route} style={{ color: "inherit", textDecoration: "none" }}>
                                 {item.title}
                             </Link>
                         </ListItemButton>
                     </ListItem>
                 ))}
-                <DarkModeBtn text />
+                {/* <DarkModeBtn /> */}
             </List>
         </Box>
     );
@@ -66,14 +70,14 @@ export default function Header(props) {
 
     return (
         <Box sx={{ display: "flex" }}>
-            <AppBar component="nav" sx={{ py: 1, backgroundColor: "primary.main" }}>
+            <AppBar component="nav" sx={{ py: 1, backgroundColor: "primary.main", height: "80px" }}>
                 <Toolbar>
                     <IconButton color="inherit" aria-label="open drawer" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2, display: { sm: "none" } }}>
                         <MenuIcon />
                     </IconButton>
                     <Box component="div" sx={{ mr: 2, display: { xs: "none", sm: "block" } }}>
                         <Link href={"/"}>
-                            <Image src="/qaM.jpg" width={50} height={50} alt="logo" priority />
+                            <Image src="/qaa.png" width={60} height={60} alt="logo" priority />
 
                         </Link>
                     </Box>
@@ -86,7 +90,7 @@ export default function Header(props) {
                             </Button>
                         ))}
                     </Box>
-                    <Box sx={{ flexGrow: "1", textAlign: "right", display: { xs: "none", sm: "block" } }}>
+                    <Box sx={{ flexGrow: "1", textAlign: "right", display: {sm: "block" } }}>
                         <DarkModeBtn />
                     </Box>
                 </Toolbar>
@@ -105,7 +109,14 @@ export default function Header(props) {
                         "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth },
                     }}
                 >
+                    <Box
+                    sx={{
+                        height: "100%"
+                    }}
+                    >
+
                     {drawer}
+                    </Box>
                 </Drawer>
             </nav>
         </Box>

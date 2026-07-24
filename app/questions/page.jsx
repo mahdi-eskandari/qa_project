@@ -65,14 +65,13 @@ export default function Page() {
 
   return (
     <Box
- sx={{
-    width: "100%",
-    maxWidth: "1200px",
-    mx: "auto",
-    px: { xs: 1.5, sm: 2.5, md: 3 },
-    // pt: { xs: 0.5, sm: 1 },
-    pb: { xs: 2, sm: 3 },
-  }}
+      sx={{
+        width: "100%",
+        maxWidth: "1200px",
+        mx: "auto",
+        px: { xs: 1.5, sm: 2.5, md: 3 },
+        pb: { xs: 2, sm: 3 },
+      }}
     >
       <Box
         sx={{
@@ -87,6 +86,7 @@ export default function Page() {
             textAlign: "center",
             fontWeight: 700,
             fontSize: { xs: "1.6rem", sm: "2rem" },
+            color: "text.primary",
           }}
         >
           All Questions
@@ -113,7 +113,7 @@ export default function Page() {
               minWidth: 0,
               "& .MuiOutlinedInput-root": {
                 borderRadius: 3,
-                bgcolor: "#fff",
+                bgcolor: "background.paper", // اصلاح شد: هماهنگی پس‌زمینه اینپوت در دارک‌مود و لایت‌مود
               },
             }}
           />
@@ -126,6 +126,7 @@ export default function Page() {
               width: { xs: "100%", md: "auto" },
             }}
           >
+            {/* دکمه قدیمی‌ترین‌ها */}
             <Button
               variant={sortOrder === "oldest" ? "contained" : "outlined"}
               onClick={() => setSortOrder("oldest")}
@@ -135,11 +136,33 @@ export default function Page() {
                 whiteSpace: "nowrap",
                 borderRadius: 3,
                 py: 1.2,
+                fontWeight: 600,
+                // استایل‌های شرطی بر اساس انتخاب دکمه و حالت تم:
+                ...(sortOrder === "oldest"
+                  ? {
+                      bgcolor: "primary.main",
+                      color: "primary.contrastText",
+                    }
+                  : {
+                      color: "text.secondary", // خاکستری ملایم در هر دو حالت لایت/دارک
+                      borderColor: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? "rgba(255, 255, 255, 0.23)"
+                          : "rgba(0, 0, 0, 0.23)",
+                      "&:hover": {
+                        borderColor: "text.primary",
+                        bgcolor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? "action.hover"
+                            : "action.hover",
+                      },
+                    }),
               }}
             >
               OLD TO NEW
             </Button>
 
+            {/* دکمه جدیدترین‌ها */}
             <Button
               variant={sortOrder === "newest" ? "contained" : "outlined"}
               onClick={() => setSortOrder("newest")}
@@ -149,6 +172,27 @@ export default function Page() {
                 whiteSpace: "nowrap",
                 borderRadius: 3,
                 py: 1.2,
+                fontWeight: 600,
+                // استایل‌های شرطی بر اساس انتخاب دکمه و حالت تم:
+                ...(sortOrder === "newest"
+                  ? {
+                      bgcolor: "primary.main",
+                      color: "primary.contrastText",
+                    }
+                  : {
+                      color: "text.secondary", // خاکستری ملایم در هر دو حالت لایت/دارک
+                      borderColor: (theme) =>
+                        theme.palette.mode === "dark"
+                          ? "rgba(255, 255, 255, 0.23)"
+                          : "rgba(0, 0, 0, 0.23)",
+                      "&:hover": {
+                        borderColor: "text.primary",
+                        bgcolor: (theme) =>
+                          theme.palette.mode === "dark"
+                            ? "action.hover"
+                            : "action.hover",
+                      },
+                    }),
               }}
             >
               NEW TO OLD
@@ -175,9 +219,7 @@ export default function Page() {
           }}
         >
           {loading ? (
-
-              <QuestionsLoading />
-
+            <QuestionsLoading />
           ) : filteredQuestions.length > 0 ? (
             filteredQuestions.map((q) => (
               <Box key={q._id} sx={{ minWidth: 0, width: "100%" }}>
@@ -185,7 +227,9 @@ export default function Page() {
                   link={`/questions/${q._id}`}
                   question={q}
                   onDelete={(id) =>
-                    setQuestions((prev) => prev.filter((item) => item._id !== id))
+                    setQuestions((prev) =>
+                      prev.filter((item) => item._id !== id)
+                    )
                   }
                 />
               </Box>
@@ -205,18 +249,5 @@ export default function Page() {
         </Box>
       </Box>
     </Box>
-
-
-
-
-
-
-
-
-
-
-
-
-
   );
 }

@@ -34,6 +34,7 @@ export default function Page({ params }) {
   const [deletingAnswerId, setDeletingAnswerId] = useState(null);
 
   const [pageLoading, setPageLoading] = useState(true)
+  const [createLoading, setCreateLoading] = useState(false)
 
   const {
     register,
@@ -86,6 +87,7 @@ export default function Page({ params }) {
 
 
   const onSubmit = async (formData) => {
+    setCreateLoading(true)
     try {
       const res = await fetch(`/api/answers`, {
         method: "POST",
@@ -114,6 +116,8 @@ export default function Page({ params }) {
 
     } catch (error) {
       console.log("Error:", error);
+    } finally {
+      setCreateLoading(false)
     }
   };
 
@@ -196,7 +200,7 @@ setQuestion((prev) => ({
         alignItems: "center",
         justifyContent: "center",
         flexDirection: "column",
-        backgroundColor: "#fff",
+        backgroundColor: "#fff"
       }}
 >
   <CircularProgress size={60} thickness={4} />
@@ -209,9 +213,10 @@ setQuestion((prev) => ({
         alignItems: "center",
         flexDirection: "column",
         justifyContent: "flex-start",
+        px: { xs: 2, sm: 3, md: 0 }
       }}
     >
-      <Box sx={{ width: "63%", py: 1, px: 2 }}>
+      <Box sx={{ width: { xs: "100%", sm: "90%", md: "63%" }, py: 1 }}>
         <Box sx={{ display: "flex", gap: 2, alignItems: "center", px: 1, py: 1 }}>
           <Image
             width={50}
@@ -226,7 +231,8 @@ setQuestion((prev) => ({
               variant="subtitle2"
               sx={{
                 fontWeight: 700,
-                color: "#1f1f1f",
+                color: "text.primary", 
+                // color: "#1f1f1f",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -279,7 +285,9 @@ setQuestion((prev) => ({
   return (
     <Box
       key={a._id}
+      
       sx={{
+        p: { xs: 2, sm: 2.5 }, // در موبایل پدینگ کارت‌ها کمی کمتر می‌شود تا فضا حفظ شود
         mb: 3,
         p: 2.5,
         // استفاده از رنگ سیستمی به جای "#fff" تا در دارک مود تیره شود
@@ -325,7 +333,7 @@ setQuestion((prev) => ({
               sx={{ 
                 fontWeight: 700, 
                 // تغییر رنگ نام کاربری به رنگ اصلی نوشته‌های قالب
-                color: "text.primary", 
+                // color: "text.primary", 
                 lineHeight: 1 
               }}
             >
@@ -456,14 +464,6 @@ setQuestion((prev) => ({
                   ? errors.content.message
                   : "Write a clear, helpful, and relevant answer."
               }
-              sx={{
-                "& .MuiFilledInput-root": {
-                  borderRadius: "1px",
-                  backgroundColor: "#e9e9e9ff",
-                  border: "none",
-                },
-                mb: 2,
-              }}
 
               sx={{ 
     mb: 2,
@@ -471,7 +471,7 @@ setQuestion((prev) => ({
       // تشخیص خودکار لایت‌مود و دارک‌مود:
       backgroundColor: (theme) => 
         theme.palette.mode === "dark" 
-          ? "background.default" // در دارک‌مود: رنگ تیره سیستمی
+          ? "#1d1d1d" // در دارک‌مود: رنگ تیره سیستمی
           : "#f0eeee",          // در لایت‌مود: همان رنگ خاکستری روشنِ قبلی شما
           
       "&:hover": {
@@ -508,68 +508,86 @@ setQuestion((prev) => ({
                 "&:hover": { backgroundColor: "#1e40af" },
               }}
             >
-              Submit
+              {
+  createLoading ? (
+    <CircularProgress size={28} color="inherit"  />
+  ) : (
+    "Submit"
+  )
+}
             </Button>
           </Box>
         </Box>
       </Box>
+<Dialog
+  open={Boolean(deletingAnswerId)}
+  onClose={() => setDeletingAnswerId(null)}
+  PaperProps={{
+    sx: {
+      borderRadius: "16px",
+      p: 1,
+      width: "400px",
+      maxWidth: "90vw",
+      // استفاده از رنگ پس‌زمینه تم برای هماهنگی با دارک‌مود
+      backgroundColor: "background.paper", 
+    },
+  }}
+>
+  <DialogTitle sx={{ 
+    fontWeight: 700, 
+    color: "text.primary", // در لایت سیاه و در دارک سفید می‌شود
+  }}>
+    Are you sure?
+  </DialogTitle>
 
-      <Dialog
-        open={Boolean(deletingAnswerId)}
-        onClose={() => setDeletingAnswerId(null)}
-        PaperProps={{
-          sx: {
-            borderRadius: "16px",
-            p: 1,
-            width: "400px",
-            maxWidth: "90vw",
-          },
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 600, color: "#1f2937" }}>
-          Delete Answer
-        </DialogTitle>
+  <DialogContent>
+    <DialogContentText sx={{ 
+      color: "text.secondary", // خاکستری مناسب برای متن‌های توضیحی در هر دو تم
+    }}>
+      Are you sure you want to delete this answer? This action cannot be undone.
+    </DialogContentText>
+  </DialogContent>
 
-        <DialogContent>
-          <DialogContentText sx={{ color: "#4b5563" }}>
-            Are you sure you want to delete this answer? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
+  <DialogActions sx={{ p: 2, gap: 2}}>
+    <Button
+      onClick={() => setDeletingAnswerId(null)}
+      sx={{
+        color: "text.secondary",
+        textTransform: "none",
+        fontWeight: 600,
+        '&:hover': { bgcolor: 'action.hover' }
+      }}
+    >
+      Cancel
+    </Button>
 
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button
-            onClick={() => setDeletingAnswerId(null)}
-            sx={{
-              color: "#6b7280",
-              textTransform: "none",
-              fontWeight: 600,
-            }}
-          >
-              Cancel
-          </Button>
+    <Button
+      disabled={deleteLoading}
+      onClick={handleDeleteConfirm}
+      variant="contained"
+      color="success" // تغییر به سبز طبق خواسته شما
+      autoFocus
+      sx={{
+        borderRadius: "10px",
+        px: 4,
+        textTransform: "none",
+        fontWeight: 600,
+        boxShadow: "none",
+        "&:hover": { 
+          boxShadow: "none", 
+          bgcolor: "success.dark" 
+        },
+      }}
+    >
+      {deleteLoading ? (
+        <CircularProgress size={20} color="inherit" />
+      ) : (
+        "Yes"
+      )}
+    </Button>
+  </DialogActions>
+</Dialog>
 
-          <Button
-            disabled={deleteLoading}
-            onClick={handleDeleteConfirm}
-            variant="contained"
-            color="error"
-            autoFocus
-            sx={{
-              borderRadius: "8px",
-              textTransform: "none",
-              fontWeight: 600,
-              boxShadow: "none",
-              "&:hover": { boxShadow: "none", bgcolor: "#dc2626" },
-            }}
-          >
-            {deleteLoading ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              "Delete Answer"
-            )}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   )
 
