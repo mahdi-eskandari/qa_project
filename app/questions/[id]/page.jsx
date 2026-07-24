@@ -21,6 +21,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import { useRouter } from "next/navigation";
 
 export default function Page({ params }) {
   const [question, setQuestion] = useState(null);
@@ -35,6 +36,12 @@ export default function Page({ params }) {
 
   const [pageLoading, setPageLoading] = useState(true)
   const [createLoading, setCreateLoading] = useState(false)
+
+  const router = useRouter();
+
+//   const handleGoBack = () => {
+//   router.push("/questions"); // انتقال به صفحه لیست
+// };
 
   const {
     register,
@@ -178,12 +185,13 @@ setQuestion((prev) => ({
 setQuestion((prev) => ({
 
   ...prev,
-  answers: prev.answers.filter((a) => a._id !== deletingAnswerId)
+  answers: prev.answers.filter((a) => String(a._id) !== String(deletingAnswerId))
 
 }))
 
 
       setDeletingAnswerId(null);
+          // router.push("/questions");
     } catch (error) {
       console.error("Delete error:", error);
     } finally {
@@ -200,10 +208,10 @@ setQuestion((prev) => ({
         alignItems: "center",
         justifyContent: "center",
         flexDirection: "column",
-        backgroundColor: "#fff"
+        backgroundColor: "background.default",
       }}
 >
-  <CircularProgress size={60} thickness={4} />
+  <CircularProgress size={60} thickness={4} color="primary" />
 </Box>
   ) : (
 <Box
@@ -519,6 +527,8 @@ setQuestion((prev) => ({
           </Box>
         </Box>
       </Box>
+
+
 <Dialog
   open={Boolean(deletingAnswerId)}
   onClose={() => setDeletingAnswerId(null)}

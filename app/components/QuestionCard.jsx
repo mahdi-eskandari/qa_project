@@ -19,7 +19,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function QuestionCard({ question, onDelete, link }) {
+export default function QuestionCard({ question, onDelete, onAnswerDelete, link }) {
   const [openModal, setOpenModal] = useState(false);
   const [deleteButtonLoading, setDeleteButtonLoading] = useState(false);
 

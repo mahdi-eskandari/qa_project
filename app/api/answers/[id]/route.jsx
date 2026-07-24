@@ -94,11 +94,10 @@ export async function DELETE(req, { params }) {
       );
     }
 
-    await Question.findByIdAndUpdate(answer.questionId, {
-      $pull: { answers: id },
-    });
-
-    await Answer.findByIdAndDelete(id);
+await Question.findByIdAndUpdate(answer.question, {
+  $pull: { answers: answer._id },
+});
+await Answer.findByIdAndDelete(id);
 
     return NextResponse.json(
       {

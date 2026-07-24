@@ -6,12 +6,10 @@ import Answer from './../../model/answer';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-
 export async function POST(req) {
-    try {
-        await connectdb()
+  try {
+    await connectdb();
 
-        // 1) گرفتن توکن از کوکی
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -22,16 +20,15 @@ export async function POST(req) {
       );
     }
 
-let decoded
-     try {
-     decoded = jwt.verify(token, process.env.JWT_SECRET);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
       return NextResponse.json(
         { message: "Invalid or expired token" },
         { status: 401 }
       );
     }
-
 
     const { content, questionId } = await req.json();
 
@@ -42,8 +39,6 @@ let decoded
       );
     }
 
-
-        // 4) بررسی وجود کاربر
     const user = await User.findById(decoded.userId);
     if (!user) {
       return NextResponse.json(
@@ -52,8 +47,6 @@ let decoded
       );
     }
 
-
-    // 5) بررسی وجود سوال
     const question = await Question.findById(questionId);
     if (!question) {
       return NextResponse.json(
@@ -62,31 +55,28 @@ let decoded
       );
     }
 
-     // 6) ساخت answer
     const newAnswer = await Answer.create({
       content,
       author: user._id,
       question: question._id,
     });
 
-    question.answers.push(newAnswer._id);
-    await question.save();
+    await Question.findByIdAndUpdate(question._id, {
+      $addToSet: { answers: newAnswer._id },
+    });
 
-
-     return NextResponse.json(
+    return NextResponse.json(
       {
         message: "Answer created successfully",
         answer: newAnswer,
       },
       { status: 201 }
     );
-
-
-    } catch (error) {
-       console.error("POST /api/answers error:", error);
+  } catch (error) {
+    console.error("POST /api/answers error:", error);
     return NextResponse.json(
       { message: "Internal server error", error: error.message },
       { status: 500 }
-    ); 
-    }
+    );
+  }
 }

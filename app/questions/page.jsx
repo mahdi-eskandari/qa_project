@@ -12,28 +12,57 @@ export default function Page() {
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
 
-  useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
+  // useEffect(() => {
+  //   const fetchQuestions = async () => {
+  //     try {
+  //       setLoading(true);
+  //       setError("");
+
+  //       const res = await fetch("/api/questions", {
+  //     cache: "no-store",
+  //   });
+  //       if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+
+  //       const data = await res.json();
+  //       const items = Array.isArray(data) ? data : data?.questions ?? [];
+  //       setQuestions(items);
+  //     } catch (error) {
+  //       console.error(error);
+  //       setError("Failed to load questions");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  // }, []);
+
+  const fetchQuestions = async () => {
+  try {
         setLoading(true);
         setError("");
+          console.log("fetchQuestions called");
 
-        const res = await fetch("/api/questions");
-        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+    const res = await fetch("/api/questions", {
+      cache: "no-store",
+    });
 
         const data = await res.json();
         const items = Array.isArray(data) ? data : data?.questions ?? [];
         setQuestions(items);
-      } catch (error) {
-        console.error(error);
+            console.log("API questions data:", data);
+  } catch (error) {
+    console.error(error);
         setError("Failed to load questions");
-      } finally {
+
+  } finally {
         setLoading(false);
       }
-    };
+};
 
-    fetchQuestions();
-  }, []);
+
+  useEffect(() => {
+  fetchQuestions();
+}, []);
 
   const filteredQuestions = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -62,6 +91,30 @@ export default function Page() {
       return sortOrder === "oldest" ? dateA - dateB : dateB - dateA;
     });
   }, [questions, search, sortOrder]);
+
+
+
+// ---------------------------------------------------
+const handleQuestionDelete = (questionId) => {
+  setQuestions((prev) =>
+    prev.filter((item) => String(item._id) !== String(questionId))
+  );
+};
+
+const handleAnswerDelete = (questionId, answerId) => {
+  setQuestions((prev) =>
+    prev.map((q) =>
+      String(q._id) === String(questionId)
+        ? {
+            ...q,
+            answers: (q.answers || []).filter(
+              (a) => String(a._id) !== String(answerId)
+            ),
+          }
+        : q
+    )
+  );
+};
 
   return (
     <Box
@@ -226,11 +279,8 @@ export default function Page() {
                 <QuestionCard
                   link={`/questions/${q._id}`}
                   question={q}
-                  onDelete={(id) =>
-                    setQuestions((prev) =>
-                      prev.filter((item) => item._id !== id)
-                    )
-                  }
+                  onDelete={handleQuestionDelete}
+                  onAnswerDelete={handleAnswerDelete}
                 />
               </Box>
             ))

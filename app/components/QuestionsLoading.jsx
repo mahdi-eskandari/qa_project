@@ -3,7 +3,6 @@
 import { Box, Skeleton } from "@mui/material";
 
 export default function QuestionsLoading() {
-  // کارتِ تمیز و درستی که خودت نوشتی
   const renderCard = (key) => (
     <Box
       key={key}
@@ -11,10 +10,16 @@ export default function QuestionsLoading() {
         width: "100%",
         minHeight: 250,
         borderRadius: { xs: 3, sm: 4 },
-        border: "1px solid #ececec",
-        boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+        // استفاده از رنگ‌های داینامیک تم برای بوردر
+        border: "1px solid",
+        borderColor: "divider",
+        // استفاده از سایه و رنگ پس‌زمینه پیش‌فرض کارت در تم فعلی
+        boxShadow: (theme) =>
+          theme.palette.mode === "dark"
+            ? "0 6px 18px rgba(0,0,0,0.4)"
+            : "0 6px 18px rgba(0,0,0,0.08)",
         p: { xs: 1.6, sm: 2.2 },
-        bgcolor: "#fff",
+        bgcolor: "background.paper", // این مقدار در لایت‌مود سفید و در دارک‌مود خاکستری تیره می‌شود
         boxSizing: "border-box",
       }}
     >
@@ -55,11 +60,10 @@ export default function QuestionsLoading() {
     </Box>
   );
 
-  // ۴ کارت لودینگ را در گریدِ دو ستونه می‌چینیم تا جایش دقیقاً با کارت‌های واقعی یکی شود
   return (
     <Box
       sx={{
-        gridColumn: "1 / -1", // کل عرض گرید والد را می‌گیرد
+        gridColumn: "1 / -1",
         display: "grid",
         gridTemplateColumns: {
           xs: "1fr",
@@ -71,8 +75,6 @@ export default function QuestionsLoading() {
     >
       {renderCard(1)}
       {renderCard(2)}
-      {/* {renderCard(3)}
-      {renderCard(4)} */}
     </Box>
   );
 }
