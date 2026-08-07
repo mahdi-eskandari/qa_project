@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation";
 import Form from "./components/Form"
+import Hero from "./components/Hero"
 // type User = {
 //   _id: string
 //   email: string
@@ -47,6 +48,11 @@ export default function Home() {
   // }
 
   return (
+    <div>
+<Hero />
+
     <Form />
+
+    </div>
   );
 }

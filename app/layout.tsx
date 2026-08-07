@@ -13,14 +13,37 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body style={{marginTop: "120px"}}>
+      <body style={{ margin: 0, padding: 0 }}>
         <ReduxProvider>
           <ThemeProvider>
-            <div>
+            {/* کانتینر اصلی با تگ استاندارد div و استایل‌های Flexbox */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                minHeight: "100vh",
+              }}
+            >
               <Header />
+
+              {/* 
+                تگ اصلی محتوا (main):
+                با اختصاص flex: 1 کل فضای خالی باقی‌مانده را پر کرده 
+                و پدینگ بالایی 120px را جایگزین marginTop بدنه می‌کند.
+              */}
+              <main
+                style={{
+                  flex: 1,
+                  paddingTop: "120px",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {children}
+              </main>
+
+              <Footer />
             </div>
-            {children}
-            <Footer />
           </ThemeProvider>
         </ReduxProvider>
       </body>

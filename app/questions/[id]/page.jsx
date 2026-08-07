@@ -575,7 +575,7 @@ setQuestion((prev) => ({
       disabled={deleteLoading}
       onClick={handleDeleteConfirm}
       variant="contained"
-      color="success" // تغییر به سبز طبق خواسته شما
+      color="error"
       autoFocus
       sx={{
         borderRadius: "10px",
@@ -585,7 +585,7 @@ setQuestion((prev) => ({
         boxShadow: "none",
         "&:hover": { 
           boxShadow: "none", 
-          bgcolor: "success.dark" 
+          bgcolor: "error.dark" 
         },
       }}
     >

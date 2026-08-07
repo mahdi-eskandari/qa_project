@@ -49,7 +49,7 @@ export default function Page() {
         const data = await res.json();
         const items = Array.isArray(data) ? data : data?.questions ?? [];
         setQuestions(items);
-            console.log("API questions data:", data);
+            // console.log("API questions data:", data);
   } catch (error) {
     console.error(error);
         setError("Failed to load questions");
