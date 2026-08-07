@@ -6,8 +6,8 @@ import Image from "next/image";
 
 const styles = {
   root: {
-    padding: { xs: "2rem", md: "4rem" },
-    bgcolor: "red",
+    padding: { xs: "2rem", md: "3rem" },
+    mb: 2
   },
 };
 
@@ -15,17 +15,25 @@ export default function Hero() {
   return (
     <Container component="section" maxWidth={false} sx={{ maxWidth: "90%" }}>
       <Stack
-        gap="4rem"
-        direction={{ xs: "column", md: "row" }}
+        gap="2rem"
         justifyContent="space-between"
         alignItems="center"
-        sx={styles.root}
+        sx={{
+          ...styles.root,
+          flexDirection: "row",
+          "@media (max-width: 1097px)": {
+            flexDirection: "column",
+          },
+        }}
       >
+        {/* بخش متن */}
         <Box
           sx={{
-            order: { xs: 2, md: 1 },
+            "@media (max-width: 1097px)": {
+              order: 2,
+              textAlign: "center",
+            },
             maxWidth: "40rem",
-            textAlign: { xs: "center", md: "left" },
           }}
         >
           <Typography gutterBottom variant="h6" letterSpacing="5px">
@@ -43,27 +51,33 @@ export default function Hero() {
           </Link>
         </Box>
 
-    <Box
-  sx={{
-    width: "400px",
-    flexShrink: 0,
-    display: "flex",
-    justifyContent: "center",
-  }}
->
-  <Image
-    src="/qa.jpg"
-    width={400}
-    height={270}
-    alt="qa"
-    style={{
-      width: "400px",
-      height: "auto",
-      display: "block",
-    }}
-  />
-</Box>
-
+        <Box
+          sx={{
+            width: "400px",
+            height: "270px",
+            flexShrink: 0, // مانع از مچاله شدن یا کوچک شدن عکس می‌شود
+            display: "flex",
+            justifyContent: "center",
+            // در صفحات کوچک‌تر از 1097px ترتیب اول (بالا) قرار بگیرد
+            "@media (max-width: 1097px)": {
+              order: 1,
+              width: "100%",
+              maxWidth: "400px",
+            },
+          }}
+        >
+          <Image
+            src="/qa.jpg"
+            width={400}
+            height={270}
+            alt="qa"
+            style={{
+              width: "100%",
+              height: "auto",
+              objectFit: "cover",
+            }}
+          />
+        </Box>
       </Stack>
     </Container>
   );
