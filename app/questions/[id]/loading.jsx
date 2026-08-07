@@ -6,6 +6,7 @@ export default function loading() {
   return (
    <Box
   sx={{
+    minHeight: "60vh",
     width: "100%",
     height: "100%",
         position: "fixed",
