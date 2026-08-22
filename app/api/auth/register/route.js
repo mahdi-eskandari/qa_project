@@ -5,7 +5,7 @@ import User from "../../../model/user";
 import { sendEmail } from "../../../utils/sendmail";
 import { NextResponse } from "next/server";
 
-export async function POST(req) {
+export async function POST(req: Request) {
   try {
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
@@ -41,11 +41,14 @@ export async function POST(req) {
     } catch (emailError) {
       console.error("Email sending failed:", emailError);
 
-      // چون کاربر ایمیل تأیید نگرفته، رکورد ناقص را پاک می‌کنیم
+      // اگر ایمیل ارسال نشد، کاربر ثبت‌شده را پاک می‌کنیم.
       await User.findByIdAndDelete(user._id);
 
       return NextResponse.json(
-        { error: "Verification email could not be sent. Please try again." },
+        {
+          error:
+            "ارسال ایمیل تأیید ناموفق بود. لطفاً دوباره تلاش کنید.",
+        },
         { status: 500 }
       );
     }
