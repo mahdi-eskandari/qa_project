@@ -8,6 +8,10 @@ import { NextResponse } from "next/server"
 
 export async function POST(req) {
     try {
+
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+    
         await connectdb()
 
         const { username, email, password } = await req.json()
@@ -29,8 +33,7 @@ export async function POST(req) {
 verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000)
         })
 
-        const verifiLink = `http://localhost:3000/verify?token=${token}`
-
+const verifiLink = `${baseUrl}/verify?token=${token}`;
         await sendEmail(email, verifiLink)
 
         return NextResponse.json({

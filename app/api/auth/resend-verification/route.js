@@ -5,7 +5,10 @@ import {sendEmail} from "../../../utils/sendmail"
 import { crypto, randomBytes  } from 'crypto';
 
 export async function POST(req) {
+
 try {
+              const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
     await connectdb()
 
     const {email} = await req.json()
@@ -37,7 +40,7 @@ try {
     user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000)
     await user.save()
 
-    const verifyLink = `http://localhost:3000/verify?token=${token}`
+const verifiLink = `${baseUrl}/verify?token=${token}`;
 
     await sendEmail(email, verifyLink)
 
