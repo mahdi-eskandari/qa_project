@@ -1,17 +1,22 @@
 // import { Inter } from "next/font/google";
+import type { ReactNode } from "react";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ThemeProvider from "./utils/Theme";
 import { ReduxProvider } from "./redux/reduxProvider";
-import MtChilden from "./components/MtChilden"
+import MtChilden from "./components/MtChilden";
 
 export const metadata = {
   title: "Q & A",
   description: "Questions & Answers",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <html lang="en">
       <body style={{ margin: 0, padding: 0 }}>

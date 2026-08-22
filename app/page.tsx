@@ -1,21 +1,14 @@
-"use client"
+"use client";
 
-import Image from "next/image";
-// import HeroSection from './components/HeroSection';
-import { Box, TextField, Typography } from "@mui/material";
-import { redirect } from "next/navigation";
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation";
-import Form from "./components/Form"
-import Hero from "./components/Hero"
+import Form from "./components/Form";
+import Hero from "./components/Hero";
+
 // type User = {
-//   _id: string
-//   email: string
-// }
-
+//   _id: string;
+//   email: string;
+// };
 
 export default function Home() {
-  const router = useRouter()
   // const [loading, setLoading] = useState(true)
   // const [user, setUser] = useState(null)
 
@@ -42,17 +35,15 @@ export default function Home() {
   //   checkUserAuth();
   // }, [router]);
 
-
   // if (loading) {
   //   return <p>Loading...</p>; // یا یک Spinner لودینگ مادیفای شده
   // }
 
   return (
     <div>
-<Hero />
+      <Hero />
 
-    <Form />
-
+      <Form />
     </div>
   );
 }
