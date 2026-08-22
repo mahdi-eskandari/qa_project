@@ -40,36 +40,35 @@ export default function RegisterForm() {
         reset
     } = useForm()
 
-    const onSubmit = async (data) => {
-        setFormData(data)
+  const onSubmit = async (data) => {
+  setFormData(data);
+  setLoading(true);
 
-        setLoading(true);
+  try {
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
+    const result = await res.json();
 
-        try {
-            const res = await fetch("/api/auth/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
-
-            const result = await res.json();
-
-            if (res.ok) {
-                router.push("/login")
-                reset();
-            } else {
-                alert(result.error);
-            }
-
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
-        }
+    if (res.ok) {
+      reset();
+      router.push("/login");
+      return;
     }
+
+    alert(result.error || "خطایی هنگام ثبت‌نام رخ داد.");
+  } catch (error) {
+    console.error("Register request failed:", error);
+    alert("ارتباط با سرور یا دریافت پاسخ از سرور ناموفق بود.");
+  } finally {
+    setLoading(false);
+  }
+};
 
 
 
