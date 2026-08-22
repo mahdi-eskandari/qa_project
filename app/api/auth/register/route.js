@@ -26,7 +26,7 @@ export async function POST(req) {
             password: hashedPassword,
             verificationToken: token,
             // verificationTokenExpires: Date.now() + 1000 * 60 * 60
-            verificationTokenExpires: new Date(Date.now() + 15 * 1000)
+verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000)
         })
 
         const verifiLink = `http://localhost:3000/verify?token=${token}`

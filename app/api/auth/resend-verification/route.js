@@ -34,7 +34,7 @@ try {
     const token = randomBytes(32).toString("hex")
 
     user.verificationToken = token;
-    user.verificationTokenExpires = new Date(Date.now() + 15 * 1000); // تست 15 ثانیه
+    user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000)
     await user.save()
 
     const verifyLink = `http://localhost:3000/verify?token=${token}`

@@ -29,7 +29,7 @@ export default function Header(props) {
     const { window } = props
     const [mobileOpen, setMobileOpen] = React.useState(false)
     const path = usePathname()
-    if(path === "/register" || path === "/login" || path === "forgot-password") {
+    if(path === "/register" || path === "/login" || path === "forgot-password" || path === "/verify") {
         return null
     }
 

@@ -8,7 +8,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
   const path = usePathname()
 
-      if(path === "/register" || path === "/login" || path === "forgot-password") {
+      if(path === "/register" || path === "/login" || path === "forgot-password" || path === "/verify") {
         return null
     }
 
