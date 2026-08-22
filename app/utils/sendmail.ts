@@ -11,7 +11,7 @@ export async function sendEmail(
   }
 
   const { data, error } = await resend.emails.send({
-    from: "Q&A <noreply@yourdomain.com>",
+    from: "Q&A <onboarding@resend.dev>",
     to: [email],
     subject: "Verify your email",
     html: `
