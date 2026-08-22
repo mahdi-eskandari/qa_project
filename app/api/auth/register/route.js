@@ -1,52 +1,65 @@
-import bcrypt from "bcrypt"
-import crypto from "crypto"
-import connectdb from "../../../db/connection"
-import User from "../../../model/user"
-import { sendEmail } from "../../../utils/sendmail"
-import { NextResponse } from "next/server"
-
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import connectdb from "../../../db/connection";
+import User from "../../../model/user";
+import { sendEmail } from "../../../utils/sendmail";
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
-    try {
+  try {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
-            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    await connectdb();
 
-    
-        await connectdb()
+    const { username, email, password } = await req.json();
 
-        const { username, email, password } = await req.json()
-        const findUser = await User.findOne({ email })
+    const findUser = await User.findOne({ email });
 
-        if (findUser) {
-            return NextResponse.json({ error: "User exsits" }, { status: 400 })
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10)
-        const token = crypto.randomBytes(32).toString("hex")
-
-        const user = await User.create({
-            username,
-            email,
-            password: hashedPassword,
-            verificationToken: token,
-            // verificationTokenExpires: Date.now() + 1000 * 60 * 60
-verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000)
-        })
-
-const verifiLink = `${baseUrl}/verify?token=${token}`;
-        await sendEmail(email, verifiLink)
-
-        return NextResponse.json({
-            message: "User created. Check your email."
-        })
-
-    } catch (error) {
-        console.log(error)
-
-        return NextResponse.json(
-            { error: "Server error" },
-            { status: 500 }
-        )
+    if (findUser) {
+      return NextResponse.json(
+        { error: "User exists" },
+        { status: 400 }
+      );
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const token = crypto.randomBytes(32).toString("hex");
+
+    const user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      verificationToken: token,
+      verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
+    });
+
+    const verifiLink = `${baseUrl}/verify?token=${token}`;
+
+    try {
+      await sendEmail(email, verifiLink);
+    } catch (emailError) {
+      console.error("Email sending failed:", emailError);
+
+      // چون کاربر ایمیل تأیید نگرفته، رکورد ناقص را پاک می‌کنیم
+      await User.findByIdAndDelete(user._id);
+
+      return NextResponse.json(
+        { error: "Verification email could not be sent. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: "User created. Check your email." },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Register error:", error);
+
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
+  }
 }
