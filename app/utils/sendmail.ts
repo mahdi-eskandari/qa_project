@@ -2,10 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function sendEmail(
-  email: string,
-  verifiLink: string
-) {
+export async function sendEmail(email: string, verifiLink: string) {
   if (!process.env.RESEND_API_KEY) {
     throw new Error("RESEND_API_KEY is not defined");
   }
@@ -18,12 +15,13 @@ export async function sendEmail(
       <div>
         <h2>Verify your email</h2>
         <p>Please click the link below to verify your account:</p>
-        <a href="${verifiLink}">${verifiLink}</a>
+        <a href="${verifiLink}">Verify your account</a>
       </div>
     `,
   });
 
   if (error) {
+    console.error("Resend error:", error);
     throw new Error(error.message);
   }
 
