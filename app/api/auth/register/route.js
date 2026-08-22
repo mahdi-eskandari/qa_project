@@ -5,10 +5,9 @@ import User from "../../../model/user";
 import { sendEmail } from "../../../utils/sendmail";
 import { NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
     await connectdb();
 
