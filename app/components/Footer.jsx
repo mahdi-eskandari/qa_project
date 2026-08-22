@@ -2,9 +2,15 @@
 
 import { Box, Container, IconButton, Link, Stack, Typography } from "@mui/material";
 import { GitHub, Twitter, LinkedIn, Email } from "@mui/icons-material";
+import { usePathname } from "next/navigation";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const path = usePathname()
+
+      if(path === "/register" || path === "/login" || path === "forgot-password") {
+        return null
+    }
 
   return (
     <Box

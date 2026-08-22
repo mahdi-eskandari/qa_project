@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ThemeProvider from "./utils/Theme";
 import { ReduxProvider } from "./redux/reduxProvider";
+import MtChilden from "./components/MtChilden"
 
 export const metadata = {
   title: "Q & A",
@@ -39,7 +40,8 @@ export default function RootLayout({ children }) {
                   flexDirection: "column",
                 }}
               >
-                {children}
+                <MtChilden children={children} />
+                {/* {children} */}
               </main>
 
               <Footer />
