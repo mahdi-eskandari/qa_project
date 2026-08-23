@@ -40,8 +40,10 @@ export default function RegisterForm() {
         reset
     } = useForm()
 
-  const onSubmit = async (data) => {
-  setFormData(data);
+
+
+
+    const onSubmit = async (data) => {
   setLoading(true);
 
   try {
@@ -53,15 +55,27 @@ export default function RegisterForm() {
       body: JSON.stringify(data),
     });
 
-    const result = await res.json();
+    const text = await res.text();
+    console.log("RAW RESPONSE:", text);
+
+    let result = {};
+    try {
+      result = JSON.parse(text);
+    } catch (e) {
+      console.log("Response is not valid JSON");
+    }
+
+    console.log("STATUS:", res.status);
+    console.log("RESULT:", result);
 
     if (res.ok) {
+      alert(result.message || "Registration successful");
       reset();
       router.push("/login");
       return;
     }
 
-    alert(result.error || "خطایی هنگام ثبت‌نام رخ داد.");
+    alert(result.error || result.message || "خطایی هنگام ثبت‌نام رخ داد.");
   } catch (error) {
     console.error("Register request failed:", error);
     alert("ارتباط با سرور یا دریافت پاسخ از سرور ناموفق بود.");
@@ -69,6 +83,7 @@ export default function RegisterForm() {
     setLoading(false);
   }
 };
+
 
 
 

@@ -1,25 +1,21 @@
-import bcrypt from "bcrypt";
-import crypto from "crypto";
-import connectdb from "../../../db/connection";
-import User from "../../../model/user";
-import { sendEmail } from "../../../utils/sendmail";
-import { NextResponse } from "next/server";
-
 export async function POST(req) {
   try {
+    console.log("REGISTER ROUTE HIT");
+
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    console.log("BASE URL:", baseUrl);
 
     await connectdb();
+    console.log("DB CONNECTED");
 
     const { username, email, password } = await req.json();
+    console.log("REQUEST BODY:", { username, email });
 
     const findUser = await User.findOne({ email });
+    console.log("FOUND USER:", !!findUser);
 
     if (findUser) {
-      return NextResponse.json(
-        { error: "User exists" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "User exists" }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -33,34 +29,22 @@ export async function POST(req) {
       verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000),
     });
 
+    console.log("USER CREATED:", user._id);
+
     const verifiLink = `${baseUrl}/verify?token=${token}`;
+    console.log("VERIFY LINK:", verifiLink);
 
-    try {
-      await sendEmail(email, verifiLink);
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError);
-
-      // اگر ایمیل ارسال نشد، کاربر ثبت‌شده را پاک می‌کنیم.
-      await User.findByIdAndDelete(user._id);
-
-      return NextResponse.json(
-        {
-          error:
-            "ارسال ایمیل تأیید ناموفق بود. لطفاً دوباره تلاش کنید.",
-        },
-        { status: 500 }
-      );
-    }
+    await sendEmail(email, verifiLink);
+    console.log("EMAIL SENT");
 
     return NextResponse.json(
       { message: "User created. Check your email." },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Register error:", error);
-
+    console.error("Register error full:", error);
     return NextResponse.json(
-      { error: "Server error" },
+      { error: error.message || "  error" },
       { status: 500 }
     );
   }
