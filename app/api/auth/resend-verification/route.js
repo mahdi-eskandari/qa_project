@@ -1,61 +1,74 @@
-import connectdb from "../../../db/connection"
-import User from "../../../model/user"
-import { NextResponse } from "next/server"
-import {sendEmail} from "../../../utils/sendmail"
-import { crypto, randomBytes  } from 'crypto';
+import connectdb from "../../../db/connection";
+import User from "../../../model/user";
+import { sendEmail } from "../../../utils/sendmail";
+import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 
 export async function POST(req) {
+  try {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
-try {
-              const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    await connectdb();
 
-    await connectdb()
+    const { email } = await req.json();
 
-    const {email} = await req.json()
-    if(!email) {
-         return NextResponse.json(
+    if (!email) {
+      return NextResponse.json(
         { error: "Email is required" },
         { status: 400 }
       );
     }
 
-    const user = await User.findOne({email})
- if (!user) {
+    const user = await User.findOne({ email });
+
+    if (!user) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
 
-    if(user.isVerified) {
-        return NextResponse.json(
-            {error: "User is already verified"},
-            {status: 400}
-        )
+    // نام این فیلد باید با Schema و route تأیید ایمیل یکی باشد
+    if (user.verified === true) {
+      return NextResponse.json(
+        { error: "User is already verified" },
+        { status: 400 }
+      );
     }
 
-    const token = randomBytes(32).toString("hex")
+    const token = randomBytes(32).toString("hex");
 
     user.verificationToken = token;
-    user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000)
-    await user.save()
+    user.verificationTokenExpires = new Date(
+      Date.now() + 15 * 60 * 1000
+    );
 
-const verifiLink = `${baseUrl}/verify?token=${token}`;
+    await user.save();
 
-    await sendEmail(email, verifyLink)
+    const verifyLink =
+      `${baseUrl.replace(/\/$/, "")}/verify?token=${token}`;
 
-     return NextResponse.json(
+    console.log("RESEND VERIFY LINK CREATED");
+
+    await sendEmail(email, verifyLink);
+
+    console.log("RESEND EMAIL SENT SUCCESSFULLY");
+
+    return NextResponse.json(
       { message: "Verification email sent successfully" },
       { status: 200 }
     );
-
-
-} catch (error) {
-     console.log("Resend verification error:", error);
+  } catch (error) {
+    console.error("RESEND VERIFICATION ERROR MESSAGE:", error?.message);
+    console.error("RESEND VERIFICATION ERROR CODE:", error?.code);
+    console.error("RESEND VERIFICATION FULL ERROR:", error);
 
     return NextResponse.json(
-      { error: "Server error" },
+      {
+        error: error?.message || "Server error",
+      },
       { status: 500 }
     );
-}
+  }
 }

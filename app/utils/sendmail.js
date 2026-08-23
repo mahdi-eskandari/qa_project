@@ -1,15 +1,15 @@
 import nodemailer from "nodemailer";
 
-export async function sendEmail(email, verifiLink) {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS;
-
+export async function sendEmail(email, verifyLink) {
   console.log("SEND EMAIL CALLED");
-  console.log("EMAIL_USER exists?", !!user);
-  console.log("EMAIL_PASS exists?", !!pass);
+  console.log("EMAIL_USER exists?", Boolean(process.env.EMAIL_USER));
+  console.log("EMAIL_PASS exists?", Boolean(process.env.EMAIL_PASS));
 
-  if (!user || !pass) {
-    throw new Error("EMAIL_USER or EMAIL_PASS is not defined in env");
+  const emailUser = process.env.EMAIL_USER;
+  const emailPass = process.env.EMAIL_PASS;
+
+  if (!emailUser || !emailPass) {
+    throw new Error("EMAIL_USER or EMAIL_PASS is missing");
   }
 
   const transporter = nodemailer.createTransport({
@@ -18,29 +18,54 @@ export async function sendEmail(email, verifiLink) {
     secure: false,
     family: 4,
     auth: {
-      user,
-      pass,
+      user: emailUser,
+      pass: emailPass,
     },
   });
 
   try {
-    const info = await transporter.sendMail({
-      from: `"Q&A Platform" <${user}>`,
+    console.log("CHECKING SMTP CONNECTION...");
+
+    await transporter.verify();
+
+    console.log("SMTP CONNECTION VERIFIED");
+
+    const result = await transporter.sendMail({
+      from: `"QA Platform" <${emailUser}>`,
       to: email,
       subject: "Verify your email",
       html: `
-        <div style="font-family: sans-serif; line-height: 1.6;">
+        <div style="font-family: Arial, sans-serif;">
           <h2>Verify your email</h2>
-          <p>Please click the link below to verify your account:</p>
-          <a href="${verifiLink}" style="display: inline-block; padding: 10px 20px; background-color: #0070f3; color: white; text-decoration: none; border-radius: 5px;">Verify your account</a>
+          <p>Click the button below to verify your account:</p>
+
+          <a
+            href="${verifyLink}"
+            style="
+              display: inline-block;
+              padding: 12px 20px;
+              background: #2563eb;
+              color: white;
+              text-decoration: none;
+              border-radius: 6px;
+            "
+          >
+            Verify account
+          </a>
         </div>
       `,
     });
 
-    console.log("SEND MAIL SUCCESS:", info.messageId);
-    return info;
+    console.log("EMAIL SENT:", result.messageId);
+
+    return result;
   } catch (error) {
-    console.error("SEND MAIL ERROR FULL:", error);
+    console.error("SMTP ERROR MESSAGE:", error?.message);
+    console.error("SMTP ERROR CODE:", error?.code);
+    console.error("SMTP ERROR COMMAND:", error?.command);
+    console.error("SMTP ERROR RESPONSE:", error?.response);
+    console.error("FULL SMTP ERROR:", error);
+
     throw error;
   }
 }
