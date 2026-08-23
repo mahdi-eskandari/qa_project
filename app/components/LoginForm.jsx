@@ -166,17 +166,17 @@ export default function LoginForm() {
       fontWeight: 500,
       color:
         status.type === "success"
-          ? "success.dark"
-          : "error.dark",
+          ? "#292c2b"
+          : "#292c2b",
       backgroundColor:
         status.type === "success"
-          ? "success.light"
-          : "error.light",
+          ? "#62cb91"
+          : "#d46a6a",
       border: "1px solid",
       borderColor:
         status.type === "success"
-          ? "success.main"
-          : "error.main",
+          ? "#62cb91"
+          : "#d46a6a",
     }}
   >
     {status.message}
