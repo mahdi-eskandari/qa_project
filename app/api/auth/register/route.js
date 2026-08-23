@@ -1,20 +1,23 @@
 import bcrypt from "bcrypt";
-import { randomBytes } from "crypto";
-import { NextResponse } from "next/server";
-
+import crypto from "crypto";
 import connectdb from "../../../db/connection";
 import User from "../../../model/user";
 import { sendEmail } from "../../../utils/sendmail";
+import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-
 export async function POST(req) {
-  console.log("REGISTER ROUTE HIT");
-
   try {
+    console.log("REGISTER ROUTE HIT");
+
     await connectdb();
 
     const body = await req.json();
+    console.log("REGISTER BODY:", {
+      username: body?.username,
+      email: body?.email,
+      hasPassword: Boolean(body?.password),
+    });
 
     const username = body?.username?.trim();
     const email = body?.email?.trim()?.toLowerCase();
@@ -29,80 +32,42 @@ export async function POST(req) {
       );
     }
 
-    const existingUser = await User.findOne({ email });
+    // بررسی کاربر، hash کردن پسورد و ساخت token
 
-    if (existingUser?.verified === true) {
+    await user.save();
+
+    console.log("USER SAVED");
+
+    try {
+      await sendEmail(email, verifiLink);
+      console.log("VERIFICATION EMAIL SENT");
+    } catch (emailError) {
+      console.error("RESEND ERROR:", emailError);
+
       return NextResponse.json(
         {
-          error: "User already exists and is verified",
+          error: "User was created, but verification email could not be sent",
+          details: emailError?.message,
         },
-        { status: 400 }
+        { status: 500 }
       );
     }
-
-    const token = randomBytes(32).toString("hex");
-
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-
-    if (!baseUrl) {
-      throw new Error("NEXT_PUBLIC_BASE_URL is missing");
-    }
-
-    const verifyLink = `${baseUrl.replace(
-      /\/$/,
-      ""
-    )}/verify?token=${token}`;
-
-    // اگر User Schema هوک pre-save برای هش کردن پسورد ندارد،
-    // باید همین‌جا پسورد را هش کنیم.
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    let user = existingUser;
-
-    if (user) {
-      user.username = username;
-      user.password = hashedPassword;
-      user.verified = false;
-      user.verificationToken = token;
-      user.verificationTokenExpires = new Date(
-        Date.now() + 15 * 60 * 1000
-      );
-    } else {
-      user = new User({
-        username,
-        email,
-        password: hashedPassword,
-        verified: false,
-        verificationToken: token,
-        verificationTokenExpires: new Date(
-          Date.now() + 15 * 60 * 1000
-        ),
-      });
-    }
-
-    await sendEmail(email, verifyLink);
-    await user.save();
 
     return NextResponse.json(
       {
-        message:
-          "Registration successful. Verification email sent.",
+        message: "User created. Check your email.",
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("REGISTER ERROR:", {
-      message: error?.message,
-      code: error?.code,
-      statusCode: error?.statusCode,
-      stack: error?.stack,
-    });
+    console.error("REGISTER ROUTE ERROR:", error);
 
     return NextResponse.json(
       {
-        error: error?.message || "Registration failed",
+        error: error?.message || "Something went wrong",
       },
       { status: 500 }
     );
   }
 }
+

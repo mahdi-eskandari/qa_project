@@ -40,9 +40,7 @@ export default function RegisterForm() {
         reset
     } = useForm()
 
-
-
-const onSubmit = async (formValues) => {
+const onSubmit = async (data) => {
   setLoading(true);
 
   try {
@@ -52,44 +50,44 @@ const onSubmit = async (formValues) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: formValues.username.trim(),
-        email: formValues.email.trim().toLowerCase(),
-        password: formValues.password,
+        username: data.username,
+        email: data.email,
+        password: data.password,
       }),
     });
 
+    console.log("STATUS:", response.status);
+    console.log("CONTENT TYPE:", response.headers.get("content-type"));
+
     const rawResponse = await response.text();
 
-    let result = {};
+    console.log("RAW RESPONSE:", rawResponse);
+
+    let result;
 
     try {
       result = JSON.parse(rawResponse);
-    } catch {
-      console.error("Server response is not valid JSON:", rawResponse);
+    } catch (parseError) {
+      console.error("JSON PARSE ERROR:", parseError);
+      throw new Error("Server returned a non-JSON response");
     }
 
-    console.log("REGISTER STATUS:", response.status);
-    console.log("REGISTER RESPONSE:", result);
-
     if (!response.ok) {
-      alert(result?.error || `Registration failed: ${response.status}`);
+      alert(result?.error || "Registration failed");
       return;
     }
 
-    alert(
-      result?.message ||
-        "Registration successful. Please check your email."
-    );
+    alert(result?.message || "Registration successful");
 
     reset();
+    router.push("/login");
   } catch (error) {
-    console.error("REGISTER FETCH ERROR:", error);
-    alert("Could not connect to the server");
+    console.error("REGISTER CATCH ERROR:", error);
+    alert(error.message || "Could not connect to the server");
   } finally {
     setLoading(false);
   }
 };
-
 
 
 
