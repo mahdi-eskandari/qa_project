@@ -42,43 +42,54 @@ export default function RegisterForm() {
 
 
 
-
-    const onSubmit = async (data) => {
+const onSubmit = async (formValues) => {
   setLoading(true);
-  console.log("data:",data)
 
-try {
-  const response = await fetch("/api/auth/register", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    username: data.username, // حتماً باید این فیلد وجود داشته باشد
-    email: data.email,
-    password: data.password,
-  }),
-});
+  try {
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: formValues.username.trim(),
+        email: formValues.email.trim().toLowerCase(),
+        password: formValues.password,
+      }),
+    });
 
+    const rawResponse = await response.text();
 
-  const data = await response.json();
+    let result = {};
 
-  console.log("Resend status:", response.status);
-  console.log("Resend response:", data);
+    try {
+      result = JSON.parse(rawResponse);
+    } catch {
+      console.error("Server response is not valid JSON:", rawResponse);
+    }
 
-  if (!response.ok) {
-    alert(data?.error || "Could not resend verification email");
-    return;
-  }
+    console.log("REGISTER STATUS:", response.status);
+    console.log("REGISTER RESPONSE:", result);
 
-  alert(data?.message || "Verification email sent successfully");
-} catch (error) {
-  console.error("Resend error:", error);
-  alert("Could not connect to the server");
-} finally {
+    if (!response.ok) {
+      alert(result?.error || `Registration failed: ${response.status}`);
+      return;
+    }
+
+    alert(
+      result?.message ||
+        "Registration successful. Please check your email."
+    );
+
+    reset();
+  } catch (error) {
+    console.error("REGISTER FETCH ERROR:", error);
+    alert("Could not connect to the server");
+  } finally {
     setLoading(false);
   }
 };
+
 
 
 
