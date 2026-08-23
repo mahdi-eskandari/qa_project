@@ -6,20 +6,20 @@ import { sendEmail } from "../../../utils/sendmail";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+
 export async function POST(req) {
   try {
-       console.log("ROUTE 1: REGISTER ROUTE HIT");
+    console.log("ROUTE 1: REGISTER ROUTE HIT");
 
     await connectdb();
 
     const body = await req.json();
 
     console.log("ROUTE 2: BODY RECEIVED", {
-  username: body?.username,
-  email: body?.email,
-  hasPassword: Boolean(body?.password),
-});
-
+      username: body?.username,
+      email: body?.email,
+      hasPassword: Boolean(body?.password),
+    });
 
     const username = body?.username?.trim();
     const email = body?.email?.trim()?.toLowerCase();
@@ -34,21 +34,55 @@ export async function POST(req) {
       );
     }
 
-    // بررسی کاربر، hash کردن پسورد و ساخت token
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return NextResponse.json(
+        {
+          error: "User already exists",
+        },
+        { status: 400 }
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+
+    const verificationTokenExpires = new Date(
+      Date.now() + 15 * 60 * 1000
+    );
+
+    const user = new User({
+      username,
+      email,
+      password: hashedPassword,
+      verificationToken,
+      verificationTokenExpires,
+      verified: false,
+    });
 
     await user.save();
 
-    console.log("USER SAVED");
+    console.log("USER SAVED:", user._id);
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+    const verifiLink = `${baseUrl}/verify?token=${verificationToken}`;
+
+    console.log("ROUTE 3: BEFORE RESEND");
 
     try {
       await sendEmail(email, verifiLink);
-      console.log("VERIFICATION EMAIL SENT");
+
+      console.log("ROUTE 4: VERIFICATION EMAIL SENT");
     } catch (emailError) {
       console.error("RESEND ERROR:", emailError);
 
       return NextResponse.json(
         {
-          error: "User was created, but verification email could not be sent",
+          error:
+            "User was created, but verification email could not be sent",
           details: emailError?.message,
         },
         { status: 500 }
@@ -72,4 +106,3 @@ export async function POST(req) {
     );
   }
 }
-
