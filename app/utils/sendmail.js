@@ -1,4 +1,5 @@
-import nodemailer from "nodemailer"
+import nodemailer from "nodemailer";
+
 export async function sendEmail(email, verifiLink) {
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASS;
@@ -9,8 +10,9 @@ export async function sendEmail(email, verifiLink) {
 
   const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false, // برای پورت 587 باید false باشد
+    family: 4,     // 👈 این خط حیاتی است: اجبار نودمیلیر به استفاده از IPv4
     auth: {
       user,
       pass,
@@ -22,14 +24,13 @@ export async function sendEmail(email, verifiLink) {
     to: email,
     subject: "Verify your email",
     html: `
-      <div>
+      <div style="font-family: sans-serif; line-height: 1.6;">
         <h2>Verify your email</h2>
         <p>Please click the link below to verify your account:</p>
-        <a href="${verifiLink}">Verify your account</a>
+        <a href="${verifiLink}" style="display: inline-block; padding: 10px 20px; background-color: #0070f3; color: white; text-decoration: none; border-radius: 5px;">Verify your account</a>
       </div>
     `,
   });
 
   return info;
 }
-
