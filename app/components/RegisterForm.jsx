@@ -40,37 +40,42 @@ export default function RegisterForm() {
         reset
     } = useForm()
 
-const onSubmit = async (data) => {
+const onSubmit = async (formData) => {
   setLoading(true);
 
   try {
+    console.log("1. BEFORE FETCH");
+
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: data.username,
-        email: data.email,
-        password: data.password,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
       }),
     });
 
+    console.log("2. RESPONSE RECEIVED");
     console.log("STATUS:", response.status);
     console.log("CONTENT TYPE:", response.headers.get("content-type"));
 
     const rawResponse = await response.text();
 
-    console.log("RAW RESPONSE:", rawResponse);
+    console.log("3. RAW RESPONSE:", rawResponse);
 
     let result;
 
     try {
       result = JSON.parse(rawResponse);
-    } catch (parseError) {
-      console.error("JSON PARSE ERROR:", parseError);
-      throw new Error("Server returned a non-JSON response");
+    } catch {
+      console.error("4. RESPONSE IS NOT JSON");
+      throw new Error("Server returned an invalid response");
     }
+
+    console.log("5. PARSED RESULT:", result);
 
     if (!response.ok) {
       alert(result?.error || "Registration failed");
@@ -82,12 +87,13 @@ const onSubmit = async (data) => {
     reset();
     router.push("/login");
   } catch (error) {
-    console.error("REGISTER CATCH ERROR:", error);
-    alert(error.message || "Could not connect to the server");
+    console.error("CATCH ERROR:", error);
+    alert(error?.message || "Could not connect to the server");
   } finally {
     setLoading(false);
   }
 };
+
 
 
 

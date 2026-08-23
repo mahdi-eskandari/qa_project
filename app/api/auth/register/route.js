@@ -8,16 +8,18 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export async function POST(req) {
   try {
-    console.log("REGISTER ROUTE HIT");
+       console.log("ROUTE 1: REGISTER ROUTE HIT");
 
     await connectdb();
 
     const body = await req.json();
-    console.log("REGISTER BODY:", {
-      username: body?.username,
-      email: body?.email,
-      hasPassword: Boolean(body?.password),
-    });
+
+    console.log("ROUTE 2: BODY RECEIVED", {
+  username: body?.username,
+  email: body?.email,
+  hasPassword: Boolean(body?.password),
+});
+
 
     const username = body?.username?.trim();
     const email = body?.email?.trim()?.toLowerCase();
