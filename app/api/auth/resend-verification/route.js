@@ -1,7 +1,7 @@
 import connectdb from "../../../db/connection";
 import User from "../../../model/user";
-import { sendEmail } from "../../../utils/sendmail";
 import { NextResponse } from "next/server";
+import { sendEmail } from "../../../utils/sendmail";
 import { randomBytes } from "crypto";
 
 export async function POST(req) {
@@ -29,7 +29,6 @@ export async function POST(req) {
       );
     }
 
-    // نام این فیلد باید با Schema و route تأیید ایمیل یکی باشد
     if (user.verified === true) {
       return NextResponse.json(
         { error: "User is already verified" },
@@ -40,14 +39,11 @@ export async function POST(req) {
     const token = randomBytes(32).toString("hex");
 
     user.verificationToken = token;
-    user.verificationTokenExpires = new Date(
-      Date.now() + 15 * 60 * 1000
-    );
+    user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000);
 
     await user.save();
 
-    const verifyLink =
-      `${baseUrl.replace(/\/$/, "")}/verify?token=${token}`;
+    const verifyLink = `${baseUrl.replace(/\/$/, "")}/verify?token=${token}`;
 
     console.log("RESEND VERIFY LINK CREATED");
 
@@ -60,14 +56,9 @@ export async function POST(req) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("RESEND VERIFICATION ERROR MESSAGE:", error?.message);
-    console.error("RESEND VERIFICATION ERROR CODE:", error?.code);
-    console.error("RESEND VERIFICATION FULL ERROR:", error);
-
+    console.error("Resend verification error:", error);
     return NextResponse.json(
-      {
-        error: error?.message || "Server error",
-      },
+      { error: error?.message || "Server error" },
       { status: 500 }
     );
   }
