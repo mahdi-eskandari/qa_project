@@ -12,6 +12,7 @@ import {
   CircularProgress,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 import Link from "next/link";
 
@@ -112,17 +113,36 @@ export default function RegisterForm() {
         >
       <Stack spacing={2.5}>
         {status.message && (
-          <Alert
-            severity={status.type === "success" ? "success" : "error"}
-            variant="standard"
-          >
-            <AlertTitle>
-              {status.type === "success" ? "Success" : "Registration Error"}
-            </AlertTitle>
+  <Typography
+    role="alert"
+    sx={{
+      width: "100%",
+      px: 2,
+      py: 1.5,
+      borderRadius: "8px",
+      textAlign: "center",
+      fontSize: "14px",
+      lineHeight: 1.8,
+      fontWeight: 500,
+      color:
+        status.type === "success"
+          ? "success.dark"
+          : "error.dark",
+      backgroundColor:
+        status.type === "success"
+          ? "success.light"
+          : "error.light",
+      border: "1px solid",
+      borderColor:
+        status.type === "success"
+          ? "success.main"
+          : "error.main",
+    }}
+  >
+    {status.message}
+  </Typography>
+)}
 
-            {status.message}
-          </Alert>
-        )}
 
         <TextField
           fullWidth
