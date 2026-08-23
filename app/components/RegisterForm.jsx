@@ -47,15 +47,18 @@ export default function RegisterForm() {
   setLoading(true);
 
 try {
-  const response = await fetch("/api/auth/resend-verification", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email: email.trim().toLowerCase(),
-    }),
-  });
+  const response = await fetch("/api/auth/register", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    username: data.username, // حتماً باید این فیلد وجود داشته باشد
+    email: data.email,
+    password: data.password,
+  }),
+});
+
 
   const data = await response.json();
 
