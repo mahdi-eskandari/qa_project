@@ -40,25 +40,25 @@ export async function POST(req) {
 
     user.verificationToken = token;
     user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000);
-
     await user.save();
 
     const verifyLink = `${baseUrl.replace(/\/$/, "")}/verify?token=${token}`;
 
-    console.log("RESEND VERIFY LINK CREATED");
-
     await sendEmail(email, verifyLink);
-
-    console.log("RESEND EMAIL SENT SUCCESSFULLY");
 
     return NextResponse.json(
       { message: "Verification email sent successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Resend verification error:", error);
+    console.error("Resend verification error full:", error);
+
     return NextResponse.json(
-      { error: error?.message || "Server error" },
+      {
+        error: error?.message || "Server error",
+        code: error?.code,
+        command: error?.command,
+      },
       { status: 500 }
     );
   }
