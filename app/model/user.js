@@ -1,37 +1,42 @@
-import { model, models, Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const userSchema = new Schema({
+const UserSchema = new mongoose.Schema(
+  {
     username: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+      trim: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
     },
     password: {
-        type: String,
-        required: true
-    },
-    image: {
-        type: String,
-        default: "/user-icon.webp"
+      type: String,
+      required: true,
     },
     role: {
-        type: String,
-        enum: ["user", "admin"],
-        default: "user"
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
     },
     isVerified: {
-        type: Boolean,
-        default: false
-
+      type: Boolean,
+      default: false,
     },
-    verificationToken: String,
-    verificationTokenExpires: Date
-}, { timestamps: true })
+    verificationToken: {
+      type: String,
+      default: null,
+    },
+    verificationTokenExpires: {
+      type: Date,
+      default: null,
+    },
+  },
+  { timestamps: true }
+);
 
-
-const User = models.User || model("User", userSchema)
-export default User
+export default mongoose.models.User || mongoose.model("User", UserSchema);

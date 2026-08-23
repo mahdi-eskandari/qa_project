@@ -1,247 +1,268 @@
 'use client'
 
-import { Box, Button, CircularProgress, TextField } from '@mui/material'
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import Link from 'next/link'
-import React from 'react'
-import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useRouter } from "next/navigation"
 
 export default function LoginForm() {
-    const [formData, setFormData] = useState(null)
-    const router = useRouter()
-    const [loading, setLoading] = useState(false)
-    const [sendLoading, setSendLoading] = useState(false)
-    const [needsVerification, setNeedsVerification] = useState(false);
-    const [email, setEmail] = useState("");
-  const [isResending, setIsResending] = useState(false);
+  const router = useRouter()
 
-    const helperText = {
-        email: {
-            required: 'Email is required',
-            pattern: 'Please enter a valid email address',
-            default: 'Enter your registered email address',
-        },
-        password: {
-            required: 'Password is required',
-            minLength: 'Password must be at least 6 characters',
-            maxLength: 'Password must be at most 30 characters',
-            default: 'Enter your account password',
-        },
-    }
+  const [status, setStatus] = useState({
+    type: '', // 'success' | 'error'
+    message: '',
+  })
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        reset
-    } = useForm()
+  const [loading, setLoading] = useState(false)
+  const [sendLoading, setSendLoading] = useState(false)
+  const [needsVerification, setNeedsVerification] = useState(false)
+  const [lastSubmittedEmail, setLastSubmittedEmail] = useState('')
 
-    const onSubmit = async (data) => {
-        try {
-            setFormData(data)
-            setLoading(true)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    mode: 'onTouched',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
 
-            const res = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
+  const onSubmit = async (formData) => {
+    setStatus({ type: '', message: '' })
+    setLoading(true)
+    setLastSubmittedEmail(formData.email.trim().toLowerCase())
 
-            })
-
-            const result = await res.json();
-
-            if (!res.ok) {
-                //  setMessage(data.error);
-                 alert(result.error);
-                // reset()
-                  if (result.code === "EMAIL_NOT_VERIFIED") {
-                    setNeedsVerification(true);
-                    }
-                  else {
-                    setNeedsVerification(false);
-                    }
-                    return
-            }
-
-            setNeedsVerification(false);
-            router.replace("/")
-            
-
-
-
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false)
-        }
-
-
-
-
-    }
-
-
-
-    const handleResendVerification = async () => {
-try {
-    setSendLoading(true)
-    const resendEmail = formData?.email
-    console.log(resendEmail)
-    if(!resendEmail) {
-    alert("Please enter your email first.");
-    return
-    }
-
-    const res = await fetch("/api/auth/resend-verification", {
-        method: "POST",
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
         headers: {
-            "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({email: resendEmail})
-    })
-    const result = await res.json()
-    if(!res.ok) {
-        alert(result.error || "Could not resend verification email");
+        body: JSON.stringify({
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+        }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        setStatus({
+          type: 'error',
+          message: result.error || result.message || 'Invalid email or password.',
+        })
+
+        if (result.code === 'EMAIL_NOT_VERIFIED' || result.error?.toLowerCase().includes('verify')) {
+          setNeedsVerification(true)
+        } else {
+          setNeedsVerification(false)
+        }
         return
+      }
+
+      setNeedsVerification(false)
+      setStatus({
+        type: 'success',
+        message: result.message || 'Login successful. Redirecting...',
+      })
+
+      setTimeout(() => {
+        router.replace('/')
+      }, 1500)
+    } catch (error) {
+      console.error('LOGIN ERROR:', error)
+      setStatus({
+        type: 'error',
+        message: 'Unable to connect to the server. Please try again later.',
+      })
+    } finally {
+      setLoading(false)
     }
-    alert(result.message || "Verification email sent successfully");
+  }
 
-
-
-} catch (error) {
-        console.log("Resend error:", error);
-    alert("Something went wrong");
-} finally {
-    setSendLoading(false)
-}
+  const handleResendVerification = async () => {
+    if (!lastSubmittedEmail) {
+      setStatus({
+        type: 'error',
+        message: 'Please enter your email address first.',
+      })
+      return
     }
 
+    try {
+      setSendLoading(true)
+      setStatus({ type: '', message: '' })
 
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: lastSubmittedEmail }),
+      })
 
-    return (
-        <Box
-            component="form"
-            onSubmit={handleSubmit(onSubmit)}
-            sx={{
-                width: "45%",
-                mx: "auto",
-                // mt: 12,
-                display: "flex",
-                flexDirection: "column",
-                gap: 3
+      const result = await res.json()
 
-            }}
+      if (!res.ok) {
+        setStatus({
+          type: 'error',
+          message: result.error || 'Could not resend verification email.',
+        })
+        return
+      }
+
+      setStatus({
+        type: 'success',
+        message:
+          result.message ||
+          'Verification email sent successfully. Please check your inbox.',
+      })
+    } catch (error) {
+      console.error('RESEND ERROR:', error)
+      setStatus({
+        type: 'error',
+        message: 'Something went wrong while sending the email.',
+      })
+    } finally {
+      setSendLoading(false)
+    }
+  }
+
+  return (
+    <Box
+      component="form"
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      sx={{
+        width: "45%",
+        mx: 'auto',
+      }}
+    >
+      <Stack spacing={2.5}>
+        {status.message && (
+          <Alert
+            severity={status.type === 'success' ? 'success' : 'error'}
+            variant="standard"
+          >
+            <AlertTitle>
+              {status.type === 'success' ? 'Success' : 'Login Error'}
+            </AlertTitle>
+            {status.message}
+          </Alert>
+        )}
+
+        <TextField
+          fullWidth
+          label="Email"
+          placeholder="Enter your email"
+          type="email"
+          autoComplete="email"
+          error={Boolean(errors.email)}
+          helperText={errors.email?.message}
+          {...register('email', {
+            required: 'Email is required',
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: 'Please enter a valid email address',
+            },
+          })}
+        />
+
+        <TextField
+          fullWidth
+          label="Password"
+          placeholder="Enter your password"
+          type="password"
+          autoComplete="current-password"
+          error={Boolean(errors.password)}
+          helperText={errors.password?.message}
+          {...register('password', {
+            required: 'Password is required',
+            minLength: {
+              value: 6,
+              message: 'Password must be at least 6 characters',
+            },
+          })}
+        />
+
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          disabled={loading}
+          sx={{
+            minHeight: 48,
+            textTransform: 'none',
+            fontSize: '1rem',
+            fontWeight: 600,
+          }}
         >
+          {loading ? (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <CircularProgress size={22} color="inherit" />
+              <span>Logging in...</span>
+            </Stack>
+          ) : (
+            'Login'
+          )}
+        </Button>
 
-            <TextField
-                label="Email"
-                variant="outlined"
-                fullWidth
-                error={!!errors.email}
-                helperText={
-                    errors.email
-                        ? helperText.email[errors.email.type]
-                        : helperText.email.default
-                }
-                {...register('email', {
-                    required: true,
-                    minLength: 10,
-                    maxLength: 50,
-                    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                })}
-
-                sx={{
-                    '& .MuiOutlinedInput-root': {
-                        borderRadius: '6px',
-                        backgroundColor: '#f5f5f5',
-                    },
-                }}
-            />
-
-            <TextField
-                label="Password"
-                variant="outlined"
-                fullWidth
-                error={!!errors.password}
-                helperText={
-                    errors.password
-                        ? helperText.password[errors.password.type]
-                        : helperText.password.default
-                }
-                {...register('password', {
-                    required: true,
-                    minLength: 10,
-                    maxLength: 50,
-                    pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
-                })}
-
-                // multiline
-                // rows={4}
-                sx={{
-                    '& .MuiOutlinedInput-root': {
-                        borderRadius: '6px',
-                        backgroundColor: '#f5f5f5',
-                    },
-                }}
-            />
-
-            <Button
-                variant='filled'
-                disabled={loading}
-                fullWidth
-                sx={{
-                    backgroundColor: "blue",
-                    borderRadius: "10px",
-                    textTransform: "none",
-                    py: "12px",
-                    backgroundColor: "#64a8f5"
-                }}
-                type='submit'
-            >
-                {
-                    loading ? (
-                        <CircularProgress size={24} color="inherit" />
-                    ) : (
-                        "LOGIN"
-                    )
-                }
-            </Button>
-
-            <Box sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: 5
-            }}>
-
-            {needsVerification && (
-             <Button variant="outlined" color="black" onClick={handleResendVerification} disabled={sendLoading}>
-             {
-                sendLoading ? (
-                    <CircularProgress size={24} color="inherit" />
-                ) : (
-                    "Resend verification email"
-                )
-             }
-             </Button>
+        {needsVerification && (
+          <Button
+            variant="outlined"
+            color="warning"
+            fullWidth
+            onClick={handleResendVerification}
+            disabled={sendLoading}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 500,
+            }}
+          >
+            {sendLoading ? (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <CircularProgress size={20} color="inherit" />
+                <span>Sending email...</span>
+              </Stack>
+            ) : (
+              'Resend Verification Email'
             )}
+          </Button>
+        )}
 
-            <Link
+        <Box sx={{ textAlign: 'center' }}>
+                     <Link
                 sx={{
-                    fontSize: "14px",
-                    textAlign: "center",
-                    color: "black"
+                   fontSize: '12px',
+              color: '#da6666',
+              textDecoration: 'none',
+              '&:hover': {
+                color: 'primary.main',
+              },
+                }}
+
+                                style={{fontSize: "14px",
+                    color: "gray"
                 }}
                 href="/register"
                 
             > Don't have an account? Sign up
             </Link>
-            </Box>
-
         </Box>
-
-    )
+      </Stack>
+    </Box>
+  )
 }

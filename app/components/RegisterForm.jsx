@@ -1,107 +1,102 @@
-'use client'
+"use client";
 
-import { Box, Button, TextField, CircularProgress } from '@mui/material'
-import Link from 'next/link'
-import React from 'react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  TextField,
+} from "@mui/material";
+import Link from "next/link";
 
 export default function RegisterForm() {
-    const [formData, setFormData] = useState(null)
-    const router = useRouter()
-    const [loading, setLoading] = useState(false)
+  const router = useRouter();
 
+  const [status, setStatus] = useState({
+    type: "",
+    message: "",
+  });
 
-    const helperText = {
-        username: {
-            // default: "Enter your full name",
-            required: "Name is required",
-            minLength: "Name must be at least 3 characters",
-            maxLength: "Name must be less than 30 characters",
-        },
-        email: {
-            required: 'Email is required',
-            pattern: 'Please enter a valid email address',
-            // default: 'Enter your registered email address',
-        },
-        password: {
-            required: 'Password is required',
-            minLength: 'Password must be at least 6 characters',
-            maxLength: 'Password must be at most 30 characters',
-            // default: 'Enter your account password',
-        },
-    }
+  const [isLoading, setIsLoading] = useState(false);
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        reset
-    } = useForm()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    mode: "onTouched",
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
+  });
 
-const onSubmit = async (formData) => {
-  setLoading(true);
-
-  try {
-    console.log("1. BEFORE FETCH");
-
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      }),
+  const onSubmit = async (formData) => {
+    setStatus({
+      type: "",
+      message: "",
     });
 
-    console.log("2. RESPONSE RECEIVED");
-    console.log("STATUS:", response.status);
-    console.log("CONTENT TYPE:", response.headers.get("content-type"));
-
-    const rawResponse = await response.text();
-
-    console.log("3. RAW RESPONSE:", rawResponse);
-
-    let result;
+    setIsLoading(true);
 
     try {
-      result = JSON.parse(rawResponse);
-    } catch {
-      console.error("4. RESPONSE IS NOT JSON");
-      throw new Error("Server returned an invalid response");
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: formData.username.trim(),
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setStatus({
+          type: "error",
+          message:
+            data.error ||
+            data.message ||
+            "Registration failed. Please try again.",
+        });
+
+        return;
+      }
+
+      setStatus({
+        type: "success",
+        message:
+          data.message ||
+          "Registration successful. You can now log in to your account.",
+      });
+
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+    } catch (error) {
+      console.error("REGISTER ERROR:", error);
+
+      setStatus({
+        type: "error",
+        message:
+          "Unable to connect to the server. Please try again later.",
+      });
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    console.log("5. PARSED RESULT:", result);
-
-    if (!response.ok) {
-      alert(result?.error || "Registration failed");
-      return;
-    }
-
-    alert(result?.message || "Registration successful");
-
-    reset();
-    router.push("/login");
-  } catch (error) {
-    console.error("CATCH ERROR:", error);
-    alert(error?.message || "Could not connect to the server");
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-
-
-
-
-
-    return (
+  return (
         <Box
             component="form"
             onSubmit={handleSubmit(onSubmit)}
@@ -115,112 +110,134 @@ const onSubmit = async (formData) => {
 
             }}
         >
+      <Stack spacing={2.5}>
+        {status.message && (
+          <Alert
+            severity={status.type === "success" ? "success" : "error"}
+            variant="standard"
+          >
+            <AlertTitle>
+              {status.type === "success" ? "Success" : "Registration Error"}
+            </AlertTitle>
 
-            <TextField
-                label="UserName"
-                variant="outlined"
-                fullWidth
-                error={!!errors.username}
-                helperText={
-                    errors.username
-                        ? helperText.username?.[errors.username.type]
-                        : helperText.username.default
-                }
-                {...register("username", {
-                    required: true,
-                    minLength: 3,
-                    maxLength: 30,
-                })}
-                sx={{
-                    "& .MuiOutlinedInput-root": {
-                        borderRadius: "6px",
-                        backgroundColor: "#f5f5f5",
-                    },
-                }}
-            />
+            {status.message}
+          </Alert>
+        )}
+
+        <TextField
+          fullWidth
+          label="Username"
+          placeholder="Enter your username"
+          type="text"
+          autoComplete="username"
+          error={Boolean(errors.username)}
+          helperText={errors.username?.message}
+          {...register("username", {
+            required: "Username is required",
+            minLength: {
+              value: 3,
+              message: "Username must be at least 3 characters",
+            },
+            maxLength: {
+              value: 30,
+              message: "Username must not exceed 30 characters",
+            },
+            pattern: {
+              value: /^[a-zA-Z0-9_]+$/,
+              message:
+                "Username can only contain letters, numbers, and underscores",
+            },
+          })}
+        />
+
+        <TextField
+          fullWidth
+          label="Email"
+          placeholder="Enter your email"
+          type="email"
+          autoComplete="email"
+          error={Boolean(errors.email)}
+          helperText={errors.email?.message}
+          {...register("email", {
+            required: "Email is required",
+            pattern: {
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: "Please enter a valid email address",
+            },
+          })}
+        />
+
+        <TextField
+          fullWidth
+          label="Password"
+          placeholder="Enter your password"
+          type="password"
+          autoComplete="new-password"
+          error={Boolean(errors.password)}
+          helperText={
+            errors.password?.message ||
+            "Password must contain at least 6 characters"
+          }
+          {...register("password", {
+            required: "Password is required",
+            minLength: {
+              value: 6,
+              message: "Password must be at least 6 characters",
+            },
+          })}
+        />
 
 
-            <TextField
-                label="Email"
-                variant="outlined"
-                fullWidth
-                error={!!errors.email}
-                helperText={
-                    errors.email
-                        ? helperText.email[errors.email.type]
-                        : helperText.email.default
-                }
-                {...register('email', {
-                    required: true,
-                    minLength: 10,
-                    maxLength: 50,
-                    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                })}
+   <Box sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 2
+            }}>
 
-                sx={{
-                    '& .MuiOutlinedInput-root': {
-                        borderRadius: '6px',
-                        backgroundColor: '#f5f5f5',
-                    },
-                }}
-            />
-
-            <TextField
-                label="Password"
-                variant="outlined"
-                fullWidth
-                error={!!errors.password}
-                helperText={
-                    errors.password
-                        ? helperText.password[errors.password.type]
-                        : helperText.password.default
-                }
-                {...register('password', {
-                    required: true,
-                    minLength: 10,
-                    maxLength: 50,
-                    pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{6,}$/,
-                })}
-
-                // multiline
-                // rows={4}
-                sx={{
-                    '& .MuiOutlinedInput-root': {
-                        borderRadius: '6px',
-                        backgroundColor: '#f5f5f5',
-                    },
-                }}
-            />
-
-            <Button
-                variant='filled'
-                disabled={loading}
-                fullWidth
-                sx={{
-                    backgroundColor: "blue",
-                    borderRadius: "10px",
-                    textTransform: "none",
-                    py: "12px",
-                    backgroundColor: "#64a8f5"
-                }}
-                type="submit"
-            >
-                {loading ? (
-                    <CircularProgress size={24} color="inherit" />
-                ) : (
-                    "REGISTER"
-                )}
-            </Button>
+            
+            
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          disabled={isLoading}
+          sx={{
+            minHeight: 48,
+            textTransform: "none",
+            fontSize: "1rem",
+            fontWeight: 600,
+          }}
+        >
+          {isLoading ? (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <CircularProgress size={22} color="inherit" />
+              <span>Creating account...</span>
+            </Stack>
+          ) : (
+            "Create Account"
+          )}
+        </Button>
+            
 
             <Link
-                style={{
-                    fontSize: "14px",
-                    textAlign: "center"
+                sx={{
+                   fontSize: '8px',
+              textDecoration: 'none',
+
+                }}
+                style={{fontSize: "14px",
+                    color: "gray"
                 }}
                 href="/login"
-            > Already have an account? Log in</Link>
+                
+            > Don't have an account? Sign up
+            </Link>
+            </Box>
 
-        </Box>
 
-    )
+      </Stack>
+    </Box>
+  );
 }
