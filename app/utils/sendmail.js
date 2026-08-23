@@ -1,52 +1,69 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendEmail(email, verifyLink) {
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM_EMAIL;
 
-  console.log("SEND EMAIL CALLED");
-  console.log("EMAIL_USER exists?", !!emailUser);
-  console.log("EMAIL_PASS exists?", !!emailPass);
-
-  if (!emailUser || !emailPass) {
-    throw new Error("EMAIL_USER or EMAIL_PASS is missing");
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is missing");
   }
 
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    family: 4,
-    auth: {
-      user: emailUser,
-      pass: emailPass,
-    },
+  if (!from) {
+    throw new Error("RESEND_FROM_EMAIL is missing");
+  }
+
+  if (!email || !verifyLink) {
+    throw new Error("Email recipient or verification link is missing");
+  }
+
+  const { data, error } = await resend.emails.send({
+    from,
+    to: [email],
+    subject: "Verify your QA Platform account",
+    text: `Verify your account by opening this link: ${verifyLink}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Verify your QA Platform account</h2>
+        <p>Click the button below to verify your email address.</p>
+
+        <p>
+          <a
+            href="${verifyLink}"
+            style="
+              display: inline-block;
+              padding: 12px 20px;
+              background-color: #2563eb;
+              color: #ffffff;
+              text-decoration: none;
+              border-radius: 6px;
+            "
+          >
+            Verify account
+          </a>
+        </p>
+
+        <p>This link will expire in 15 minutes.</p>
+
+        <p style="color: #666; font-size: 13px;">
+          If you did not create an account, you can ignore this email.
+        </p>
+      </div>
+    `,
   });
 
-  try {
-    console.log("VERIFYING SMTP...");
-    await transporter.verify();
-    console.log("SMTP VERIFIED");
-
-    const result = await transporter.sendMail({
-      from: `"QA Platform" <${emailUser}>`,
-      to: email,
-      subject: "Verify your email",
-      html: `
-        <h2>Verify your email</h2>
-        <p>Click below:</p>
-        <a href="${verifyLink}">Verify account</a>
-      `,
+  if (error) {
+    console.error("RESEND API ERROR:", {
+      name: error.name,
+      message: error.message,
+      statusCode: error.statusCode,
     });
 
-    console.log("MAIL SENT:", result.messageId);
-    return result;
-  } catch (error) {
-    console.error("SEND MAIL ERROR MESSAGE:", error?.message);
-    console.error("SEND MAIL ERROR CODE:", error?.code);
-    console.error("SEND MAIL ERROR COMMAND:", error?.command);
-    console.error("SEND MAIL ERROR RESPONSE:", error?.response);
-    console.error("SEND MAIL FULL ERROR:", error);
-    throw error;
+    throw new Error(error.message || "Resend failed to send email");
   }
+
+  console.log("RESEND EMAIL SENT:", data?.id);
+
+  return data;
 }

@@ -1,17 +1,18 @@
+import { randomBytes } from "crypto";
+import { NextResponse } from "next/server";
+
 import connectdb from "../../../db/connection";
 import User from "../../../model/user";
-import { NextResponse } from "next/server";
 import { sendEmail } from "../../../utils/sendmail";
-import { randomBytes } from "crypto";
+
+export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
     await connectdb();
 
-    const { email } = await req.json();
+    const body = await req.json();
+    const email = body?.email?.trim()?.toLowerCase();
 
     if (!email) {
       return NextResponse.json(
@@ -31,33 +32,51 @@ export async function POST(req) {
 
     if (user.verified === true) {
       return NextResponse.json(
-        { error: "User is already verified" },
+        { error: "This account is already verified" },
         { status: 400 }
       );
     }
 
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+    if (!baseUrl) {
+      throw new Error("NEXT_PUBLIC_BASE_URL is missing");
+    }
+
     const token = randomBytes(32).toString("hex");
 
-    user.verificationToken = token;
-    user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000);
-    await user.save();
+    const verifyLink =
+      `${baseUrl.replace(/\/$/, "")}/verify?token=${token}`;
 
-    const verifyLink = `${baseUrl.replace(/\/$/, "")}/verify?token=${token}`;
-
+    /*
+     * ابتدا ایمیل ارسال می‌شود.
+     * اگر ارسال موفق بود، توکن در دیتابیس ذخیره می‌شود.
+     */
     await sendEmail(email, verifyLink);
 
-    return NextResponse.json(
-      { message: "Verification email sent successfully" },
-      { status: 200 }
+    user.verificationToken = token;
+    user.verificationTokenExpires = new Date(
+      Date.now() + 15 * 60 * 1000
     );
-  } catch (error) {
-    console.error("Resend verification error full:", error);
+
+    await user.save();
 
     return NextResponse.json(
       {
-        error: error?.message || "Server error",
-        code: error?.code,
-        command: error?.command,
+        message: "Verification email sent successfully",
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("RESEND VERIFICATION ERROR:", {
+      message: error?.message,
+      code: error?.code,
+      statusCode: error?.statusCode,
+    });
+
+    return NextResponse.json(
+      {
+        error: error?.message || "Could not resend verification email",
       },
       { status: 500 }
     );

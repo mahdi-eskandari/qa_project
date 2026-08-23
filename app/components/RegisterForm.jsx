@@ -46,40 +46,32 @@ export default function RegisterForm() {
     const onSubmit = async (data) => {
   setLoading(true);
 
-  try {
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+try {
+  const response = await fetch("/api/auth/resend-verification", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: email.trim().toLowerCase(),
+    }),
+  });
 
-    const text = await res.text();
-    console.log("RAW RESPONSE:", text);
+  const data = await response.json();
 
-    let result = {};
-    try {
-      result = JSON.parse(text);
-    } catch (e) {
-      console.log("Response is not valid JSON");
-    }
+  console.log("Resend status:", response.status);
+  console.log("Resend response:", data);
 
-    console.log("STATUS:", res.status);
-    console.log("RESULT:", result);
+  if (!response.ok) {
+    alert(data?.error || "Could not resend verification email");
+    return;
+  }
 
-    if (res.ok) {
-      alert(result.message || "Registration successful");
-      reset();
-      router.push("/login");
-      return;
-    }
-
-    alert(result.error || result.message || "خطایی هنگام ثبت‌نام رخ داد.");
-  } catch (error) {
-    console.error("Register request failed:", error);
-    alert("ارتباط با سرور یا دریافت پاسخ از سرور ناموفق بود.");
-  } finally {
+  alert(data?.message || "Verification email sent successfully");
+} catch (error) {
+  console.error("Resend error:", error);
+  alert("Could not connect to the server");
+} finally {
     setLoading(false);
   }
 };
