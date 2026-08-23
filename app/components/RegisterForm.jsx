@@ -45,6 +45,7 @@ export default function RegisterForm() {
 
     const onSubmit = async (data) => {
   setLoading(true);
+  console.log("data:", data)
 
 try {
   const response = await fetch("/api/auth/register", {
