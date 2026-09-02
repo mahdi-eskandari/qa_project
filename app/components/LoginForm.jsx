@@ -79,9 +79,7 @@ export default function LoginForm() {
         message: result.message || 'Login successful. Redirecting...',
       })
 
-      setTimeout(() => {
         router.replace('/')
-      }, 1500)
     } catch (error) {
       console.error('LOGIN ERROR:', error)
       setStatus({
